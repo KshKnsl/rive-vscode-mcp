@@ -5,14 +5,14 @@
   "type": "module",
   "main": "./index.mjs",
   "bin": {
-    "rive-vscode-mcp-server": "./index.mjs"
+    "rive-vscode-mcp-server": "./rive-vscode-mcp-server"
   },
   "mcpName": "io.github.kshknsl/rive-vscode-mcp",
   "license": "MIT",
   "author": "Kush Kansal",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KshKnsl/rive-vscode-mcp.git",
+    "url": "git+https://github.com/KshKnsl/rive-vscode-mcp.git",
     "directory": "mcp-server"
   },
   "homepage": "https://github.com/KshKnsl/rive-vscode-mcp#readme",
