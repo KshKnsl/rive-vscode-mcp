@@ -2,7 +2,7 @@
   "name": "rive-vscode-mcp",
   "displayName": "Rive VS Code MCP",
   "description": "Preview Rive animations and state machines in VS Code, export PNG screenshots, and inspect file metadata with MCP.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "kushkansal",
   "author": "Kush Kansal",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "url": "https://github.com/KshKnsl/rive-vscode-mcp/issues"
   },
   "engines": {
-    "vscode": "^1.144.0"
+    "vscode": "^1.101.0"
   },
   "categories": [
     "Visualization",
@@ -91,7 +91,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
     "@types/node": "^26.6.6",
-    "@types/vscode": "^1.144.0",
+    "@types/vscode": "1.101.0",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.3"
   }

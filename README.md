@@ -34,7 +34,7 @@ The extension contributes one local stdio MCP server, discovered automatically b
 
 ## Requirements
 
-- Visual Studio Code 1.144 or later for the preview extension.
+- Visual Studio Code 1.101 or later.
 - Node.js 18 or later to run the MCP server from another client outside VS Code.
 
 ## Development
@@ -46,6 +46,10 @@ npm run compile
 ```
 
 The compile command builds the preview stylesheet and TypeScript extension code.
+
+## Automated VSIX releases
+
+Each push to `main` runs the tests, compiles the extension, and publishes the VSIX as an asset on a GitHub Release tagged with that commit's SHA.
 
 ## License
 
