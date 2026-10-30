@@ -1,11 +1,19 @@
 {
   "name": "rive-vscode-mcp",
   "displayName": "Rive VS Code MCP",
-  "description": "Preview Rive assets in VS Code and expose file insights to AI agents through MCP.",
+  "description": "Preview Rive animations and state machines in VS Code, and inspect file metadata with MCP.",
   "version": "0.0.1",
   "publisher": "kushkansal",
   "author": "Kush Kansal",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KshKnsl/rive-vscode-mcp.git"
+  },
+  "homepage": "https://github.com/KshKnsl/rive-vscode-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/KshKnsl/rive-vscode-mcp/issues"
+  },
   "engines": {
     "vscode": "^1.144.0"
   },
@@ -15,17 +23,30 @@
   ],
   "keywords": [
     "rive",
+    "rive animation",
     "animation",
-    "preview",
+    "animation preview",
     "artboard",
-    "state-machine"
+    "state machine",
+    "mcp"
   ],
   "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e24",
+    "theme": "dark"
+  },
   "main": "./out/extension.js",
   "activationEvents": [
-    "onCustomEditor:rive-vscode-mcp.rivePreview"
+    "onCustomEditor:rive-vscode-mcp.rivePreview",
+    "onStartupFinished"
   ],
   "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "rive-vscode-mcp.server",
+        "label": "Rive VS Code MCP"
+      }
+    ],
     "customEditors": [
       {
         "viewType": "rive-vscode-mcp.rivePreview",
@@ -52,12 +73,14 @@
     "compile": "npm run build:css && tsc -p ./",
     "watch:css": "node ./scripts/build-css.mjs --watch",
     "watch": "tsc -w -p ./",
-    "mcp": "node ./mcp.mjs"
+    "mcp": "node ./mcp.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@rive-app/canvas": "^2.49.0",
-    "@rive-app/canvas-advanced": "^2.49.0"
+    "@rive-app/canvas-advanced": "^2.49.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
