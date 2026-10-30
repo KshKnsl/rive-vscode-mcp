@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./index.mjs",
   "bin": {
-    "rive-vscode-mcp-server": "./cli.mjs"
+    "rive-vscode-mcp-server": "cli.mjs"
   },
   "mcpName": "io.github.kshknsl/rive-vscode-mcp",
   "license": "MIT",
