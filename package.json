@@ -1,0 +1,67 @@
+{
+  "name": "rive-vscode-mcp",
+  "displayName": "Rive VS Code MCP",
+  "description": "Preview Rive assets in VS Code and expose file insights to AI agents through MCP.",
+  "version": "0.0.1",
+  "publisher": "kushkansal",
+  "author": "Kush Kansal",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.144.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "rive",
+    "animation",
+    "preview",
+    "artboard",
+    "state-machine",
+    "flutter",
+    "javascript",
+    "react",
+    "react-native",
+    "unity"
+  ],
+  "icon": "icon.png",
+  "main": "./out/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "rive-vscode-mcp.rivePreview",
+        "displayName": "Rive VS Code MCP",
+        "selector": [
+          {
+            "filenamePattern": "*.riv"
+          }
+        ]
+      }
+    ],
+    "languages": [
+      {
+        "id": "rive",
+        "extensions": [
+          ".riv"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "mcp": "node ./mcp.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@rive-app/canvas": "^2.49.0",
+    "@rive-app/canvas-advanced": "^2.49.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/vscode": "^1.144.0",
+    "typescript": "^5.9.3"
+  }
+}
