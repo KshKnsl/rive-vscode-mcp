@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.kshknsl/rive-vscode-mcp",
+  "title": "Rive VS Code MCP",
+  "description": "Inspect Rive files for artboards, animations, state machines, and inputs.",
+  "repository": {
+    "url": "https://github.com/KshKnsl/rive-vscode-mcp",
+    "source": "github"
+  },
+  "version": "1.0.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "rive-vscode-mcp-server",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
