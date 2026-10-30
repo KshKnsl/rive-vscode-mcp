@@ -47,6 +47,14 @@ npm run compile
 
 The compile command builds the preview stylesheet and TypeScript extension code.
 
+## Standalone MCP server
+
+The extension bundles the same MCP server for automatic VS Code discovery. It is also published independently as [`rive-vscode-mcp-server`](https://www.npmjs.com/package/rive-vscode-mcp-server). Run this in a terminal to add it to global MCP configs for VS Code, Cursor, Claude Code, and Claude Desktop:
+
+```sh
+npx -y rive-vscode-mcp-server
+```
+
 
 ## License
 

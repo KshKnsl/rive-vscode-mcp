@@ -1,9 +1,13 @@
+#!/usr/bin/env node
+
 import { readFile, realpath, stat } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as z from "zod/v4";
+import { configureEditorConfigs } from "./setup.mjs";
 
 const require = createRequire(import.meta.url);
 const extensionPackage = require("./package.json");
@@ -231,4 +235,33 @@ server.registerTool(
 );
 
 const transport = new StdioServerTransport();
-await server.connect(transport);
+const entryPath =
+  process.argv[1] && (await realpath(process.argv[1]));
+const isDirectExecution = entryPath === fileURLToPath(import.meta.url);
+const args = process.argv.slice(2);
+const setupRequested =
+  isDirectExecution &&
+  (args.includes("setup") ||
+    (args.length === 0 && process.stdin.isTTY && process.stdout.isTTY));
+
+if (setupRequested) {
+  const results = await configureEditorConfigs();
+  for (const result of results) {
+    if (result.status === "written") {
+      console.log(`Configured ${result.editor}: ${result.filePath}`);
+    } else if (result.status === "unchanged") {
+      console.log(`${result.editor} already has the Rive server configured.`);
+    } else if (result.status === "conflict") {
+      console.error(
+        `${result.editor} already has a different "rive" server entry; left it unchanged: ${result.filePath}`
+      );
+      process.exitCode = 1;
+    } else {
+      console.error(`Could not configure ${result.editor}: ${result.message}`);
+      process.exitCode = 1;
+    }
+  }
+  console.log("Restart the configured editors to load the Rive MCP server.");
+} else {
+  await server.connect(transport);
+}
