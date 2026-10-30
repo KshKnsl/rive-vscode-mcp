@@ -2,7 +2,7 @@
   "name": "rive-vscode-mcp",
   "displayName": "Rive VS Code MCP",
   "description": "Preview Rive animations and state machines in VS Code, export PNG screenshots, and inspect file metadata with MCP.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "kushkansal",
   "author": "Kush Kansal",
   "license": "MIT",
