@@ -451,16 +451,38 @@ export class RivePreviewProvider
                     <label class="flex items-center gap-1.5 text-[10px] text-muted">Fit<select id="fitSelect" class="h-7 min-w-[100px] rounded border border-border bg-input px-2 text-[10px] text-text focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" aria-label="Preview fit"><option value="contain">Contain</option><option value="cover">Cover</option><option value="fill">Fill</option><option value="fitWidth">Fit width</option><option value="fitHeight">Fit height</option></select></label>
                     <div class="flex items-center gap-1" role="group" aria-label="Zoom controls"><button id="zoomOut" class="grid size-7 cursor-pointer place-items-center rounded border border-border bg-input text-xs hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45" title="Zoom out" aria-label="Zoom out">−</button><button id="zoomReset" class="h-7 min-w-11 cursor-pointer rounded border border-border bg-input px-1 text-[10px] [font-variant-numeric:tabular-nums] hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45" title="Reset zoom" aria-label="Reset zoom">100%</button><button id="zoomIn" class="grid size-7 cursor-pointer place-items-center rounded border border-border bg-input text-xs hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45" title="Zoom in" aria-label="Zoom in">+</button></div>
                   </div>
-                  <div class="flex min-w-[140px] flex-1 items-center gap-2 rounded border border-border bg-input px-2 py-1">
-                    <strong id="timelineTitle" class="max-w-[35%] shrink-0 overflow-hidden text-[10px] font-medium text-ellipsis whitespace-nowrap" title="Selected animation timeline">Select a timeline</strong>
-                    <input id="timelineScrubber" class="min-w-8 flex-1 cursor-pointer accent-accent focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45" type="range" min="0" max="0" step="0.01" value="0" aria-label="Animation timeline position" disabled />
-                    <span class="shrink-0 text-[9px] [font-variant-numeric:tabular-nums] text-muted"><span id="elapsedTime">0:00.00</span><span class="px-0.5">/</span><span id="totalTime">0:00.00</span></span>
+                  <div class="flex min-w-[200px] flex-1 items-center gap-2 rounded-md border border-border bg-input px-2.5 py-1">
+                    <strong id="timelineTitle" class="max-w-[30%] min-w-0 shrink overflow-hidden text-[10px] font-medium text-ellipsis whitespace-nowrap" title="Selected animation timeline">Select a timeline</strong>
+                    <input id="timelineScrubber" class="timeline-range min-w-8 flex-1 cursor-pointer disabled:cursor-default disabled:opacity-40" type="range" min="0" max="0" step="0.01" value="0" aria-label="Animation timeline position" disabled />
+                    <span class="shrink-0 rounded bg-raised px-1.5 py-0.5 font-mono text-[9px] [font-variant-numeric:tabular-nums]"><span id="elapsedTime" class="text-text">0:00.00</span><span class="px-1 text-muted">/</span><span id="totalTime" class="text-muted">0:00.00</span></span>
                   </div>
-                  <label class="ml-auto flex shrink-0 items-center gap-1.5 text-[10px] text-muted">Background<input id="background" class="size-7 cursor-pointer rounded border border-border bg-input p-0.5 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" type="color" value="#202127" aria-label="Preview background" /></label>
+                  <div class="ml-auto flex shrink-0 items-center gap-1.5">
+                    <label class="flex items-center gap-1.5 text-[10px] text-muted">Background<input id="background" class="size-7 cursor-pointer rounded border border-border bg-input p-0.5 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" type="color" value="#202127" aria-label="Preview background" /></label>
+                  </div>
                 </div>
               </div>
-              <div id="assetSummary" class="hidden flex flex-wrap items-center gap-1.5 border-b border-border px-2 py-1.5" hidden></div>
-              <div class="relative grid h-[clamp(300px,56vh,700px)] min-h-[300px] place-items-center overflow-hidden bg-[#202127] max-[860px]:h-[52vh] max-[480px]:h-[44vh] max-[480px]:min-h-[240px]"><canvas id="canvas" class="block h-full w-full origin-center" aria-label="Interactive Rive animation preview" tabindex="0"></canvas><div id="emptyState" class="absolute max-w-[260px] rounded-lg border border-dashed border-border bg-surface px-4 py-3 text-center text-muted" hidden>No artboards found in this file.</div></div>
+              <div id="assetSummary" class="hidden flex flex-wrap items-center gap-1.5 border-b border-border px-2 py-1.5" hidden>
+                <div id="assetStats" class="flex flex-wrap items-center gap-1.5"></div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <input id="referenceFile" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Choose alignment background image" />
+                  <button id="chooseReference" class="h-6 cursor-pointer rounded border border-border bg-input px-2 text-[9px] font-semibold hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" title="Choose a temporary screen image, then drag and scale the Rive artboard to match it. Copy placement for top-left coordinates and scale." aria-label="Choose alignment image">Align image</button>
+                  <div id="alignmentDesignDimensions" class="flex items-center gap-1.5 rounded-[5px] border border-border bg-raised px-2 py-[3px]" hidden>
+                    <span class="text-[9px] text-muted">Design px</span>
+                    <label class="flex items-center gap-1 text-[9px] text-muted">W<input id="designWidth" class="h-6 w-[64px] rounded border border-border bg-input px-1.5 text-[10px] text-text [font-variant-numeric:tabular-nums] focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" type="number" min="1" step="1" value="1440" aria-label="Assumed design width in pixels" /></label>
+                    <label class="flex items-center gap-1 text-[9px] text-muted">H<input id="designHeight" class="h-6 w-[64px] rounded border border-border bg-input px-1.5 text-[10px] text-text [font-variant-numeric:tabular-nums] focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" type="number" min="1" step="1" value="3120" aria-label="Assumed design height in pixels" /></label>
+                  </div>
+                  <label id="backgroundOpacityControl" class="flex items-center gap-1 text-[9px] text-muted" title="Background opacity" hidden>
+                    <input id="backgroundOpacity" class="w-14 cursor-pointer accent-accent focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" type="range" min="0" max="100" step="1" value="100" aria-label="Preview background opacity" />
+                    <span id="backgroundOpacityValue" class="w-7 text-right [font-variant-numeric:tabular-nums]">100%</span>
+                  </label>
+                </div>
+              </div>
+              <div id="previewStage" class="relative grid h-[clamp(300px,56vh,700px)] min-h-[300px] place-items-center overflow-hidden bg-[#202127] max-[860px]:h-[52vh] max-[480px]:h-[44vh] max-[480px]:min-h-[240px]">
+                <img id="referenceImage" class="pointer-events-none absolute inset-0 z-0 h-full w-full object-contain" alt="Temporary alignment background" hidden />
+                <canvas id="canvas" class="relative z-10 block h-full w-full origin-center" aria-label="Interactive Rive animation preview" tabindex="0"></canvas>
+                <div id="alignmentDragHandle" class="pointer-events-none absolute inset-0 z-20 touch-none focus-visible:outline-2 focus-visible:outline-focus" aria-label="Drag to position the Rive artboard. Use arrow keys to move it one pixel, or Shift and arrow keys to move ten pixels." role="group" tabindex="-1"></div>
+                <div id="emptyState" class="absolute z-30 max-w-[260px] rounded-lg border border-dashed border-border bg-surface px-4 py-3 text-center text-muted" hidden>No artboards found in this file.</div>
+              </div>
               <span id="timelineDetails" class="sr-only"></span>
               <span id="timingNote" class="sr-only">Timeline duration and looping vary by animation.</span>
             </section>
@@ -478,6 +500,18 @@ export class RivePreviewProvider
               <section class="min-w-0 border-t border-border">
                 <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2"><h2 class="m-0 shrink-0 text-xs font-semibold">State machines</h2><div class="flex min-w-0 items-center gap-1"><select id="machineSelect" class="h-7 min-w-0 max-w-[180px] rounded border border-border bg-input px-2 text-[10px] text-text focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2" aria-label="State machine"></select><button id="copyMachine" class="h-7 shrink-0 cursor-pointer rounded border border-border bg-transparent px-2 text-[9px] font-semibold transition-colors hover:border-accent/55 hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45">Copy</button></div></div>
                 <div id="inputList" class="flex max-h-52 flex-col gap-1 overflow-y-auto p-2"></div>
+              </section>
+              <section id="alignmentProperties" class="min-w-0 border-t border-border" hidden>
+                <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+                  <h2 class="m-0 text-xs font-semibold">Alignment</h2>
+                  <button id="copyAlignmentSide" class="h-7 shrink-0 cursor-pointer rounded border border-border bg-transparent px-2 text-[9px] font-semibold transition-colors hover:border-accent/55 hover:bg-accent/15 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45" disabled>Copy placement</button>
+                </div>
+                <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 p-2 text-[10px]">
+                  <dt class="text-muted">X from left</dt><dd id="alignmentX" class="m-0 select-text text-right font-mono [font-variant-numeric:tabular-nums]">—</dd>
+                  <dt class="text-muted">Y from top</dt><dd id="alignmentY" class="m-0 select-text text-right font-mono [font-variant-numeric:tabular-nums]">—</dd>
+                  <dt class="text-muted">Scale</dt><dd id="alignmentScale" class="m-0 select-text text-right font-mono [font-variant-numeric:tabular-nums]">—</dd>
+                </dl>
+                <p id="alignmentMessage" class="m-0 px-2 pb-2 text-[10px] text-muted" role="status" aria-live="polite"></p>
               </section>
               <div id="toast" class="pointer-events-none fixed bottom-4 right-4 z-[5] translate-y-1.5 rounded-md border border-[color-mix(in_srgb,#4caf79_60%,transparent)] bg-[#27734c] px-3 py-2 text-[11px] text-white opacity-0 shadow-[0_5px_20px_rgb(0_0_0_/_25%)] transition-[opacity,transform] duration-150 ease-in-out" role="status" aria-live="polite"></div>
             </aside>

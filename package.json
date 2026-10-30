@@ -1,7 +1,7 @@
 {
   "name": "rive-vscode-mcp",
   "displayName": "Rive VS Code MCP",
-  "description": "Preview Rive animations and state machines in VS Code, and inspect file metadata with MCP.",
+  "description": "Preview Rive animations and state machines in VS Code, export PNG screenshots, and inspect file metadata with MCP.",
   "version": "0.0.1",
   "publisher": "kushkansal",
   "author": "Kush Kansal",
@@ -41,6 +41,12 @@
     "onStartupFinished"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "rive-vscode-mcp.copyMcpConfiguration",
+        "title": "Rive VS Code MCP: Copy MCP Client Configuration"
+      }
+    ],
     "mcpServerDefinitionProviders": [
       {
         "id": "rive-vscode-mcp.server",
