@@ -1,6 +1,6 @@
 {
   "name": "rive-vscode-mcp-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Inspect Rive files for artboards, animations, state machines, and inputs.",
   "type": "module",
   "main": "./index.mjs",
