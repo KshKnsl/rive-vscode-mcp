@@ -18,11 +18,7 @@
     "animation",
     "preview",
     "artboard",
-    "state-machine",
-    "flutter",
-    "javascript",
-    "react",
-    "react-native"
+    "state-machine"
   ],
   "icon": "icon.png",
   "main": "./out/extension.js",
@@ -52,8 +48,9 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "build:css": "tailwindcss -i ./assets/tailwind.css -o ./assets/rive-preview-style.css --minify",
+    "build:css": "node ./scripts/build-css.mjs",
     "compile": "npm run build:css && tsc -p ./",
+    "watch:css": "node ./scripts/build-css.mjs --watch",
     "watch": "tsc -w -p ./",
     "mcp": "node ./mcp.mjs"
   },

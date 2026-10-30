@@ -1,6 +1,6 @@
 # Rive VS Code MCP
 
-Preview `.riv` files in VS Code, explore artboards, animations, and state machines, and generate integration examples for Flutter, web, React, and React Native.
+Preview `.riv` files in VS Code and explore artboards, animations, and state machines.
 
 ![Rive preview](preview.GIF)
 
@@ -10,6 +10,8 @@ Preview `.riv` files in VS Code, explore artboards, animations, and state machin
 npm run compile
 "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" --new-window --extensionDevelopmentPath="$PWD" "/absolute/path/to/sample.riv"
 ```
+
+The compile command builds the local Tailwind stylesheet used by the preview webview.
 
 Replace the sample path with your `.riv` file's absolute path. This opens it in an Extension Development Host with the extension enabled.
 
