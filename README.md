@@ -2,7 +2,7 @@
 
 Preview and inspect Rive `.riv` files without leaving Visual Studio Code.
 
-![Rive file preview in VS Code](preview.GIF)
+![Rive file preview in VS Code](preview.gif)
 
 ## Features
 
