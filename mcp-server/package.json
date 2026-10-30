@@ -1,11 +1,11 @@
 {
   "name": "rive-vscode-mcp-server",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "description": "Inspect Rive files for artboards, animations, state machines, and inputs.",
   "type": "module",
   "main": "./index.mjs",
   "bin": {
-    "rive-vscode-mcp-server": "./rive-vscode-mcp-server"
+    "rive-vscode-mcp-server": "cli.mjs"
   },
   "mcpName": "io.github.kshknsl/rive-vscode-mcp",
   "license": "MIT",

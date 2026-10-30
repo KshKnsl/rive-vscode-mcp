@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm ci
@@ -96,7 +97,7 @@ jobs:
           fi
 
       - name: Update npm CLI for OIDC publishing
-        run: npm install --global npm@^11.5.1
+        run: npm install --global npm@11.5.1
 
       - name: Publish standalone MCP server to npm
         env:
@@ -104,10 +105,21 @@ jobs:
           PACKAGE_VERSION: ${{ steps.version.outputs.version }}
         shell: bash
         run: |
-          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version >/dev/null 2>&1; then
+          set -euo pipefail
+          pack_output="$(npm pack --dry-run ./mcp-server 2>&1)"
+          printf '%s\n' "$pack_output"
+          if grep -Eq 'auto-corrected some errors|bin\[.*\] script name .* was invalid' <<< "$pack_output"; then
+            echo "npm modified package metadata while packing; refusing to publish a broken CLI." >&2
+            exit 1
+          fi
+
+          if view_result="$(npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>&1)"; then
             echo "${PACKAGE_NAME}@${PACKAGE_VERSION} is already published."
-          else
+          elif grep -q 'E404' <<< "$view_result"; then
             npm publish --access public --provenance ./mcp-server
+          else
+            printf '%s\n' "$view_result" >&2
+            exit 1
           fi
 
       - name: Install cosign
