@@ -1,39 +1,52 @@
 # Rive VS Code MCP
 
-Preview `.riv` files in VS Code and explore artboards, animations, and state machines.
+Preview and inspect Rive `.riv` files without leaving Visual Studio Code.
 
-![Rive preview](preview.GIF)
+![Rive file preview in VS Code](preview.GIF)
 
-## Run the extension
+## Features
+
+- Preview Rive artboards with timeline animations and state machines.
+- Select artboards and animations, play or pause playback, and scrub timelines.
+- Inspect state-machine inputs and interact with supported inputs.
+- Adjust fit, zoom, and preview background.
+- Align an artboard over a temporary background image and copy its top-left `x`/`y` coordinates and scale.
+- Optionally inspect Rive file metadata through the `inspect_rive_file` MCP tool.
+
+## Use the preview
+
+1. Install **Rive VS Code MCP** from the Visual Studio Code Marketplace.
+2. Open a `.riv` file. If prompted, choose **Rive VS Code MCP** as its editor.
+3. Use the side panel to choose an artboard or inspect animations and state machines.
+4. Use the preview toolbar for playback, timeline scrubbing, fit, zoom, background color and opacity, and screenshot export.
+
+
+## MCP server in VS Code
+
+The extension contributes one local stdio MCP server, discovered automatically by VS Code across workspaces. Use **MCP: List Servers** to manage **Rive MCP**. The `inspect_rive_file` tool returns artboard dimensions, animation names and timing, state-machine names, and input names and types.
+
+
+### Enable in Cursor or another MCP client
+
+1. Run **Rive VS Code MCP: Copy Global MCP Configuration** from the Command Palette once.
+2. Paste the copied `rive-vscode-mcp` entry into your MCP client's user-level/global configuration. For Cursor, use `~/.cursor/mcp.json`. This works across projects under your home directory.
+
+
+## Requirements
+
+- Visual Studio Code 1.144 or later for the preview extension.
+- Node.js 18 or later to run the MCP server from another client outside VS Code.
+
+## Development
 
 ```bash
+npm install
 npm run compile
 "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" --new-window --extensionDevelopmentPath="$PWD" "/absolute/path/to/sample.riv"
 ```
 
-The compile command builds the local Tailwind stylesheet used by the preview webview.
+The compile command builds the preview stylesheet and TypeScript extension code.
 
-Replace the sample path with your `.riv` file's absolute path. This opens it in an Extension Development Host with the extension enabled.
+## License
 
-## MCP server
-
-The local `inspect_rive_file` tool gives AI agents artboard dimensions, animation names and timing, state machines, and input names and types. It reads files locally and only accepts `.riv` files inside the configured project root.
-
-Install dependencies with `npm install`, then add this server to your MCP client:
-
-```json
-{
-  "servers": {
-    "rive-vscode-mcp": {
-      "command": "node",
-      "args": ["/path/to/rive-vscode-mcp/mcp.mjs"],
-      "cwd": "/path/to/your/rive/project",
-      "env": {
-        "RIVE_MCP_ROOT": "/path/to/your/rive/project"
-      }
-    }
-  }
-}
-```
-
-Requires Node.js 18 or later.
+[MIT](LICENSE)

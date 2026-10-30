@@ -44,7 +44,7 @@
     "commands": [
       {
         "command": "rive-vscode-mcp.copyMcpConfiguration",
-        "title": "Rive VS Code MCP: Copy MCP Client Configuration"
+        "title": "Rive VS Code MCP: Copy Global MCP Configuration"
       }
     ],
     "mcpServerDefinitionProviders": [
