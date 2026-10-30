@@ -1,6 +1,6 @@
 # Rive VS Code MCP
 
-Preview `.riv` files in VS Code, explore artboards, animations, and state machines, and generate integration examples for Flutter, web, React, React Native, and Unity.
+Preview `.riv` files in VS Code, explore artboards, animations, and state machines, and generate integration examples for Flutter, web, React, and React Native.
 
 ![Rive preview](preview.GIF)
 
@@ -8,10 +8,10 @@ Preview `.riv` files in VS Code, explore artboards, animations, and state machin
 
 ```bash
 npm run compile
-code --new-window --extensionDevelopmentPath="$PWD" "/absolute/path/to/your-file.riv"
+"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" --new-window --extensionDevelopmentPath="$PWD" "/absolute/path/to/sample.riv"
 ```
 
-Replace the sample path with your `.riv` file's absolute path.
+Replace the sample path with your `.riv` file's absolute path. This opens it in an Extension Development Host with the extension enabled.
 
 ## MCP server
 

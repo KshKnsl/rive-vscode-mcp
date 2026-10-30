@@ -22,11 +22,13 @@
     "flutter",
     "javascript",
     "react",
-    "react-native",
-    "unity"
+    "react-native"
   ],
   "icon": "icon.png",
   "main": "./out/extension.js",
+  "activationEvents": [
+    "onCustomEditor:rive-vscode-mcp.rivePreview"
+  ],
   "contributes": {
     "customEditors": [
       {
@@ -50,7 +52,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "build:css": "tailwindcss -i ./assets/tailwind.css -o ./assets/rive-preview-style.css --minify",
+    "compile": "npm run build:css && tsc -p ./",
     "watch": "tsc -w -p ./",
     "mcp": "node ./mcp.mjs"
   },
@@ -60,8 +63,10 @@
     "@rive-app/canvas-advanced": "^2.49.0"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
     "@types/node": "^26.6.6",
     "@types/vscode": "^1.144.0",
+    "tailwindcss": "^4.1.13",
     "typescript": "^5.9.3"
   }
 }
