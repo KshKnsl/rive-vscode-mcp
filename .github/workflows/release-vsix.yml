@@ -7,10 +7,16 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+
+concurrency:
+  group: main-vsix-release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -30,15 +36,33 @@ jobs:
       - name: Compile extension
         run: npm run compile
 
+      - name: Bump extension version
+        id: version
+        shell: bash
+        run: |
+          npm version patch --no-git-tag-version
+          version="$(node -p "require('./package.json').version")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: release v${version}"
+          git push origin HEAD:main
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Package VSIX
         id: package
         shell: bash
         run: |
-          version="$(node -p "require('./package.json').version")"
-          short_sha="${GITHUB_SHA::7}"
-          vsix="rive-vscode-mcp-${version}-${short_sha}.vsix"
+          version="${{ steps.version.outputs.version }}"
+          vsix="rive-vscode-mcp-${version}.vsix"
           npx --yes @vscode/vsce package --out "$vsix"
           echo "path=$vsix" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to Visual Studio Marketplace
+        env:
+          VSIX_PATH: ${{ steps.package.outputs.path }}
+        run: npx --yes @vscode/vsce publish --oidc --skip-duplicate --packagePath "$VSIX_PATH"
 
       - name: Create or update GitHub Release
         env:
@@ -46,12 +70,13 @@ jobs:
           VSIX_PATH: ${{ steps.package.outputs.path }}
         shell: bash
         run: |
-          tag="main-${GITHUB_SHA}"
+          version="${{ steps.version.outputs.version }}"
+          tag="v${version}"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "$VSIX_PATH" --clobber
           else
             gh release create "$tag" "$VSIX_PATH" \
-              --title "Rive VS Code MCP ${GITHUB_SHA::7}" \
+              --title "Rive VS Code MCP ${tag}" \
               --notes "Automated VSIX built from commit ${GITHUB_SHA} on main." \
-              --target "$GITHUB_SHA"
+              --target "${{ steps.version.outputs.commit }}"
           fi

@@ -47,9 +47,6 @@ npm run compile
 
 The compile command builds the preview stylesheet and TypeScript extension code.
 
-## Automated VSIX releases
-
-Each push to `main` runs the tests, compiles the extension, and publishes the VSIX as an asset on a GitHub Release tagged with that commit's SHA.
 
 ## License
 

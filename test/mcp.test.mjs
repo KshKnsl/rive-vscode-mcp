@@ -25,7 +25,7 @@ before(async () => {
     command: process.execPath,
     args: [serverPath],
     cwd: projectDirectory,
-    stderr: "ignore",
+    stderr: "pipe",
     env: {
       ...Object.fromEntries(
         Object.entries(process.env).filter((entry) => entry[1] !== undefined)
@@ -33,7 +33,19 @@ before(async () => {
       RIVE_MCP_ROOT: projectDirectory,
     },
   });
-  await client.connect(transport);
+  let serverStderr = "";
+  transport.stderr?.on("data", (chunk) => {
+    serverStderr += chunk.toString();
+  });
+  try {
+    await client.connect(transport);
+  } catch (error) {
+    const detail = serverStderr.trim();
+    throw new Error(
+      `Could not connect to the MCP server${detail ? `: ${detail}` : ""}`,
+      { cause: error }
+    );
+  }
 });
 
 after(async () => {
