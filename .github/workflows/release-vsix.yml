@@ -79,6 +79,19 @@ jobs:
           VSIX_PATH: ${{ steps.package.outputs.path }}
         run: npx --yes @vscode/vsce publish --oidc --skip-duplicate --packagePath "$VSIX_PATH"
 
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OPEN_VSX_TOKEN }}
+          VSIX_PATH: ${{ steps.package.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$OVSX_PAT" ]]; then
+            echo "::warning::Open VSX publishing skipped. Add OPEN_VSX_TOKEN to the production environment secrets."
+            exit 0
+          fi
+          npx --yes ovsx publish "$VSIX_PATH" -p "$OVSX_PAT"
+
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}

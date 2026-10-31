@@ -13,8 +13,6 @@ node_modules/@modelcontextprotocol/sdk/dist/cjs/examples/**
 node_modules/@modelcontextprotocol/sdk/dist/cjs/**
 node_modules/@modelcontextprotocol/sdk/dist/esm/examples/**
 node_modules/@modelcontextprotocol/sdk/README.md
-node_modules/zod/v3/**
-node_modules/zod/v4-mini/**
 node_modules/zod/mini/**
 node_modules/zod/locales/**
 sample_rive_files/**
