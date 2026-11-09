@@ -237,7 +237,9 @@ server.registerTool(
 const transport = new StdioServerTransport();
 const entryPath =
   process.argv[1] && (await realpath(process.argv[1]));
-const isDirectExecution = entryPath === fileURLToPath(import.meta.url);
+const isDirectExecution =
+  entryPath === fileURLToPath(import.meta.url) ||
+  entryPath === fileURLToPath(new URL("./cli.mjs", import.meta.url));
 const args = process.argv.slice(2);
 const setupRequested =
   isDirectExecution &&
