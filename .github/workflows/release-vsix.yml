@@ -135,26 +135,22 @@ jobs:
             exit 1
           fi
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+      - name: Check out official MCP Registry source
+        uses: actions/checkout@v4
+        with:
+          repository: modelcontextprotocol/registry
+          ref: ad119f3d478a936c95d73b291c5fbc106231f7bc
+          path: mcp-registry
 
-      - name: Download and verify MCP Registry publisher
-        env:
-          MCP_PUBLISHER_VERSION: v1.8.1
-        shell: bash
-        run: |
-          set -euo pipefail
-          archive="mcp-publisher_linux_amd64.tar.gz"
-          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
-          curl --fail --location --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 --output "$archive" "$base_url/$archive"
-          curl --fail --location --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
-          cosign verify-blob \
-            --bundle "$archive.sigstore.json" \
-            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            "$archive"
-          tar xzf "$archive" mcp-publisher
-          chmod +x mcp-publisher
+      - name: Set up Go for MCP publisher
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.0"
+          cache-dependency-path: mcp-registry/go.sum
+
+      - name: Build official MCP Registry publisher
+        working-directory: mcp-registry
+        run: go build -trimpath -o ../mcp-publisher ./cmd/publisher
 
       - name: Publish server to MCP Registry
         run: |
