@@ -146,8 +146,8 @@ jobs:
           set -euo pipefail
           archive="mcp-publisher_linux_amd64.tar.gz"
           base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
-          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
-          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          curl --fail --location --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
           cosign verify-blob \
             --bundle "$archive.sigstore.json" \
             --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
