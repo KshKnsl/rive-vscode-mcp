@@ -7,7 +7,7 @@
   "bin": {
     "rive-vscode-mcp-server": "cli.mjs"
   },
-  "mcpName": "io.github.kshknsl/rive-vscode-mcp",
+  "mcpName": "io.github.KshKnsl/rive-vscode-mcp",
   "license": "MIT",
   "author": "Kush Kansal",
   "repository": {
