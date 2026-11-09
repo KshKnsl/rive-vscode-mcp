@@ -153,7 +153,30 @@ jobs:
         run: go build -trimpath -o ../mcp-publisher ./cmd/publisher
 
       - name: Publish server to MCP Registry
+        env:
+          PACKAGE_NAME: rive-vscode-mcp-server
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
         run: |
+          set -euo pipefail
           ./mcp-publisher login github-oidc
           ./mcp-publisher validate server.json
-          ./mcp-publisher publish
+          for attempt in $(seq 1 20); do
+            if publish_output="$(./mcp-publisher publish 2>&1)"; then
+              printf '%s\n' "$publish_output"
+              exit 0
+            fi
+
+            printf '%s\n' "$publish_output"
+            if ! grep -Fq "version '${PACKAGE_VERSION}' was not found" <<< "$publish_output"; then
+              exit 1
+            fi
+
+            if (( attempt == 20 )); then
+              echo "${PACKAGE_NAME}@${PACKAGE_VERSION} is still not visible to the MCP Registry after 10 minutes." >&2
+              exit 1
+            fi
+
+            echo "${PACKAGE_NAME}@${PACKAGE_VERSION} is not visible to the MCP Registry yet; retrying in 30 seconds (${attempt}/20)."
+            sleep 30
+          done
