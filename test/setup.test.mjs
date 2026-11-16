@@ -100,3 +100,49 @@ test("uses COPILOT_HOME for VS Code global MCP configuration", async () => {
     path.join(copilotHome, "mcp-config.json")
   );
 });
+
+test("writes Claude Desktop config to the macOS support directory", async () => {
+  const home = path.join(temporaryDirectory, "darwin-home");
+  const results = await configureEditorConfigs({
+    home,
+    platform: "darwin",
+    env: {},
+  });
+  const desktop = results.find(({ editor }) => editor === "Claude Desktop");
+  assert.equal(desktop?.status, "written");
+  assert.equal(
+    desktop?.filePath,
+    path.join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json")
+  );
+});
+
+test("returns unchanged when the rive server entry already matches", async () => {
+  const home = path.join(temporaryDirectory, "matched-home");
+  const cursorConfigPath = path.join(home, ".cursor", "mcp.json");
+  const expectedEntry = {
+    command: "npx",
+    args: ["-y", "rive-vscode-mcp-server"],
+    env: { RIVE_MCP_ROOT: home },
+  };
+  await mkdir(path.dirname(cursorConfigPath), { recursive: true });
+  await writeFile(
+    cursorConfigPath,
+    JSON.stringify({ mcpServers: { rive: expectedEntry } }, null, 2)
+  );
+
+  const results = await configureEditorConfigs({ home, platform: "linux", env: {} });
+  const cursor = results.find(({ editor }) => editor === "Cursor");
+  assert.equal(cursor?.status, "unchanged");
+});
+
+test("surfaces read errors for invalid MCP config files", async () => {
+  const home = path.join(temporaryDirectory, "invalid-json-home");
+  const cursorConfigPath = path.join(home, ".cursor", "mcp.json");
+  await mkdir(path.dirname(cursorConfigPath), { recursive: true });
+  await writeFile(cursorConfigPath, "{ this is not json");
+
+  const results = await configureEditorConfigs({ home, platform: "linux", env: {} });
+  const cursor = results.find(({ editor }) => editor === "Cursor");
+  assert.equal(cursor?.status, "error");
+  assert.match(cursor?.message ?? "", /valid JSON/);
+});

@@ -87,6 +87,9 @@ test("exposes optional inspect parameters and returns compact tool text", async 
   assert.ok(tool?.inputSchema.properties.filePath);
   assert.ok(tool?.inputSchema.properties.artboardName);
   assert.ok(tool?.inputSchema.properties.summary);
+  assert.ok(tool?.inputSchema.properties.includeAnimations);
+  assert.ok(tool?.inputSchema.properties.includeStateMachines);
+  assert.deepEqual(tool.inputSchema.required, ["filePath"]);
 
   const response = await client.callTool({
     name: "inspect_rive_file",
@@ -95,5 +98,38 @@ test("exposes optional inspect parameters and returns compact tool text", async 
   assert.equal(response.isError, true);
   assert.ok(response.content[0].text.length < 200);
   assert.doesNotMatch(response.content[0].text, /"artboards"/);
+  assert.equal(response.structuredContent, undefined);
+});
+
+test("rejects empty file paths and missing riv files", async () => {
+  const emptyPath = await client.callTool({
+    name: "inspect_rive_file",
+    arguments: { filePath: "  " },
+  });
+  assert.equal(emptyPath.isError, true);
+  assert.match(emptyPath.content[0].text, /non-empty path/);
+
+  const missing = await client.callTool({
+    name: "inspect_rive_file",
+    arguments: { filePath: "does-not-exist.riv" },
+  });
+  assert.equal(missing.isError, true);
+});
+
+test("reports structuredContent only for successful inspections", async () => {
+  const invalid = await client.callTool({
+    name: "inspect_rive_file",
+    arguments: { filePath: "invalid.riv" },
+  });
+  assert.equal(invalid.isError, true);
+  assert.equal(invalid.structuredContent, undefined);
+  assert.match(invalid.content[0].text, /^Could not inspect Rive file:/);
+});
+
+test("lists a single read-only inspect tool", async () => {
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 1);
+  assert.equal(tools[0].name, "inspect_rive_file");
+  assert.equal(tools[0].annotations?.openWorldHint, false);
 });
 

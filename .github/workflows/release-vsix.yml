@@ -37,13 +37,15 @@ jobs:
       - name: Compile extension
         run: npm run compile
 
-      - name: Bump extension version
+      - name: Resolve release version
         id: version
         shell: bash
         run: |
-          npm version patch --no-git-tag-version
-          version="$(node -p "require('./package.json').version")"
-          node --input-type=module - "$version" <<'NODE'
+          set -euo pipefail
+
+          sync_versions() {
+            local target_version="$1"
+            node --input-type=module - "$target_version" <<'NODE'
           import { readFile, writeFile } from "node:fs/promises";
           const version = process.argv[2];
           for (const file of ["mcp-server/package.json", "server.json"]) {
@@ -57,13 +59,76 @@ jobs:
             await writeFile(file, `${JSON.stringify(metadata, null, 2)}\n`);
           }
           NODE
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json mcp-server/package.json server.json
-          git commit -m "chore: release v${version}"
-          git push origin HEAD:main
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          }
+
+          current_version="$(node -p "require('./package.json').version")"
+          parent_version=""
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            parent_version="$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")"
+          fi
+
+          version_pre_bumped=false
+          if [[ -n "$parent_version" && "$parent_version" != "$current_version" ]]; then
+            echo "Version already updated in this commit (${parent_version} -> ${current_version}); skipping npm version patch."
+            version="$current_version"
+            version_pre_bumped=true
+          else
+            npm version patch --no-git-tag-version
+            version="$(node -p "require('./package.json').version")"
+            echo "Bumped version (${parent_version:-unknown} -> ${version})."
+          fi
+
+          sync_versions "$version"
+          if [[ "$version_pre_bumped" != "true" ]]; then
+            npm install --package-lock-only
+          fi
+
+          node --input-type=module - <<'NODE'
+          import { readFileSync } from "node:fs";
+
+          const version = JSON.parse(readFileSync("package.json", "utf8")).version;
+          const extensionPackage = JSON.parse(readFileSync("mcp-server/package.json", "utf8"));
+          const lockfile = JSON.parse(readFileSync("package-lock.json", "utf8"));
+          const serverMetadata = JSON.parse(readFileSync("server.json", "utf8"));
+
+          if (extensionPackage.version !== version) {
+            throw new Error(
+              `mcp-server/package.json version ${extensionPackage.version} does not match package.json ${version}`
+            );
+          }
+          if (lockfile.version !== version) {
+            throw new Error(
+              `package-lock.json version ${lockfile.version} does not match package.json ${version}`
+            );
+          }
+          if (lockfile.packages?.[""]?.version !== version) {
+            throw new Error("package-lock.json root package version is out of sync");
+          }
+          if (serverMetadata.version !== version) {
+            throw new Error(
+              `server.json version ${serverMetadata.version} does not match package.json ${version}`
+            );
+          }
+          if (serverMetadata.packages?.[0]?.version !== version) {
+            throw new Error("server.json packages[0].version is out of sync");
+          }
+          NODE
+
+          if [[ "$version_pre_bumped" == "true" ]]; then
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          elif [[ "$version_pre_bumped" != "true" ]] && ! git diff --quiet -- package.json package-lock.json mcp-server/package.json server.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package.json package-lock.json mcp-server/package.json server.json
+            git commit -m "chore: release v${version}"
+            git push origin HEAD:main
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Package VSIX
         id: package

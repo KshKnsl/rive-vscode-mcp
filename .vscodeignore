@@ -4,6 +4,8 @@
 src/**
 scripts/**
 test/**
+test/fixtures/**
+**/*.riv
 package-lock.json
 tsconfig.json
 out/**/*.map
@@ -16,7 +18,6 @@ node_modules/@modelcontextprotocol/sdk/README.md
 node_modules/zod/mini/**
 node_modules/zod/locales/**
 sample_rive_files/**
-*.riv
 file_rive-image-debug.html
 rive-image-debug.html
 

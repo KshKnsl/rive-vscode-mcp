@@ -1,0 +1,3 @@
+**/*.riv
+test/**
+**/fixtures/**
