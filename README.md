@@ -23,7 +23,7 @@ Preview and inspect Rive `.riv` files without leaving Visual Studio Code.
 
 ## MCP server in VS Code
 
-The extension contributes one local stdio MCP server, discovered automatically by VS Code across workspaces. Use **MCP: List Servers** to manage **Rive MCP**. The `inspect_rive_file` tool returns artboard dimensions, animation names and timing, state-machine names, and input names and types.
+The extension contributes one local stdio MCP server, discovered automatically by VS Code across workspaces. Use **MCP: List Servers** to manage **Rive MCP**. The `inspect_rive_file` tool returns artboard dimensions, animation names and timing, state-machine names, and input names and types. Optional arguments `artboardName`, `summary`, `includeAnimations`, and `includeStateMachines` reduce payload size; full results are in `structuredContent`.
 
 
 ### Enable in Cursor or another MCP client

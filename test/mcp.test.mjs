@@ -80,3 +80,20 @@ test("publishes the read-only Rive inspection tool and rejects unsafe inputs", a
   });
   assert.equal(invalidFile.isError, true);
 });
+
+test("exposes optional inspect parameters and returns compact tool text", async () => {
+  const { tools } = await client.listTools();
+  const tool = tools.find(({ name }) => name === "inspect_rive_file");
+  assert.ok(tool?.inputSchema.properties.filePath);
+  assert.ok(tool?.inputSchema.properties.artboardName);
+  assert.ok(tool?.inputSchema.properties.summary);
+
+  const response = await client.callTool({
+    name: "inspect_rive_file",
+    arguments: { filePath: "invalid.riv", summary: true },
+  });
+  assert.equal(response.isError, true);
+  assert.ok(response.content[0].text.length < 200);
+  assert.doesNotMatch(response.content[0].text, /"artboards"/);
+});
+

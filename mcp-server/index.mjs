@@ -1,204 +1,65 @@
 #!/usr/bin/env node
 
-import { readFile, realpath, stat } from "node:fs/promises";
+import { realpath } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import path from "node:path";
 import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as z from "zod/v4";
 import { configureEditorConfigs } from "./setup.mjs";
+import { createInspectService } from "./inspect.mjs";
 
 const require = createRequire(import.meta.url);
 const extensionPackage = require("./package.json");
-const runtimeDirectory = path.dirname(
-  require.resolve("@rive-app/canvas-advanced")
-);
 const rootPath = await realpath(process.env.RIVE_MCP_ROOT || process.cwd());
-const maxFileSize = 100 * 1024 * 1024;
-let runtimePromise;
+const {
+  getRuntime,
+  inspectRiveFile,
+  formatToolTextSummary,
+} = createInspectService(rootPath);
 
-function getRuntime() {
-  runtimePromise ??= (async () => {
-    const Rive = (await import("@rive-app/canvas-advanced")).default;
-    const wasmFile = await readFile(path.join(runtimeDirectory, "rive.wasm"));
-    return Rive({
-      wasmBinary: wasmFile.buffer.slice(
-        wasmFile.byteOffset,
-        wasmFile.byteOffset + wasmFile.byteLength
-      ),
-    });
-  })();
-  return runtimePromise;
-}
+const animationSchema = z.object({
+  name: z.string(),
+  durationFrames: z.number(),
+  framesPerSecond: z.number(),
+  durationSeconds: z.number().nullable(),
+  workStart: z.number(),
+  workEnd: z.number(),
+  loopType: z.union([z.number(), z.string()]),
+});
 
-function assertInsideRoot(filePath) {
-  const relativePath = path.relative(rootPath, filePath);
-  if (
-    relativePath === "" ||
-    relativePath === ".." ||
-    relativePath.startsWith(`..${path.sep}`) ||
-    path.isAbsolute(relativePath)
-  ) {
-    throw new Error("The requested path must be inside the configured Rive project root.");
-  }
-}
+const stateMachineSchema = z.object({
+  name: z.string(),
+  inputs: z.array(z.object({ name: z.string(), type: z.string() })),
+});
 
-async function resolveRiveFile(inputPath) {
-  if (typeof inputPath !== "string" || inputPath.trim() === "") {
-    throw new Error("filePath must be a non-empty path to a .riv file.");
-  }
-
-  const requestedPath = path.resolve(rootPath, inputPath);
-  const resolvedPath = await realpath(requestedPath);
-  assertInsideRoot(resolvedPath);
-
-  if (path.extname(resolvedPath).toLowerCase() !== ".riv") {
-    throw new Error("The requested file must have a .riv extension.");
-  }
-
-  const fileStats = await stat(resolvedPath);
-  if (!fileStats.isFile()) {
-    throw new Error("The requested path is not a file.");
-  }
-  if (fileStats.size > maxFileSize) {
-    throw new Error("The requested Rive file exceeds the 100 MiB size limit.");
-  }
-
-  return { resolvedPath, fileStats };
-}
-
-function describeInput(input, runtime) {
-  const inputTypes = {
-    [runtime.SMIInput.bool]: "boolean",
-    [runtime.SMIInput.number]: "number",
-    [runtime.SMIInput.trigger]: "trigger",
-  };
-  return {
-    name: input.name,
-    type: inputTypes[input.type] || `unknown (${input.type})`,
-  };
-}
-
-function inspectArtboard(file, index, runtime) {
-  const artboard = file.artboardByIndex(index);
-  const bounds = artboard.bounds;
-  const animations = [];
-  for (
-    let animationIndex = 0;
-    animationIndex < artboard.animationCount();
-    animationIndex += 1
-  ) {
-    const animation = artboard.animationByIndex(animationIndex);
-    animations.push({
-      name: animation.name,
-      durationFrames: animation.duration,
-      framesPerSecond: animation.fps,
-      durationSeconds: animation.fps > 0 ? animation.duration / animation.fps : null,
-      workStart: animation.workStart,
-      workEnd: animation.workEnd,
-      loopType: animation.loopValue,
-    });
-  }
-
-  const stateMachines = [];
-  for (
-    let machineIndex = 0;
-    machineIndex < artboard.stateMachineCount();
-    machineIndex += 1
-  ) {
-    const stateMachine = artboard.stateMachineByIndex(machineIndex);
-    const instance = new runtime.StateMachineInstance(stateMachine, artboard);
-    const inputs = [];
-    for (let inputIndex = 0; inputIndex < instance.inputCount(); inputIndex += 1) {
-      inputs.push(describeInput(instance.input(inputIndex), runtime));
-    }
-    stateMachines.push({ name: stateMachine.name, inputs });
-  }
-
-  return {
-    name: artboard.name,
-    size: {
-      width: artboard.width,
-      height: artboard.height,
-    },
-    bounds: {
-      x: bounds.minX,
-      y: bounds.minY,
-      width: bounds.maxX - bounds.minX,
-      height: bounds.maxY - bounds.minY,
-    },
-    animations,
-    stateMachines,
-  };
-}
-
-async function inspectRiveFile(inputPath) {
-  const { resolvedPath, fileStats } = await resolveRiveFile(inputPath);
-  const [bytes, runtime] = await Promise.all([
-    readFile(resolvedPath),
-    getRuntime(),
-  ]);
-  const assetLoader = new runtime.CustomFileAssetLoader({
-    loadContents: () => true,
-  });
-  let file;
-  try {
-    file = await runtime.load(new Uint8Array(bytes), assetLoader, false);
-    const artboards = [];
-    for (let index = 0; index < file.artboardCount(); index += 1) {
-      artboards.push(inspectArtboard(file, index, runtime));
-    }
-    return {
-      fileName: path.basename(resolvedPath),
-      sizeBytes: fileStats.size,
-      artboards,
-    };
-  } finally {
-    file?.unref();
-    assetLoader.delete();
-  }
-}
+const artboardSchema = z.object({
+  name: z.string(),
+  size: z.object({ width: z.number(), height: z.number() }),
+  bounds: z.object({
+    x: z.number(),
+    y: z.number(),
+    width: z.number(),
+    height: z.number(),
+  }),
+  animations: z.array(animationSchema).optional(),
+  stateMachines: z.array(stateMachineSchema).optional(),
+  animationCount: z.number().optional(),
+  stateMachineCount: z.number().optional(),
+});
 
 const resultSchema = {
   fileName: z.string(),
   sizeBytes: z.number(),
-  artboards: z.array(
-    z.object({
-      name: z.string(),
-      size: z.object({ width: z.number(), height: z.number() }),
-      bounds: z.object({
-        x: z.number(),
-        y: z.number(),
-        width: z.number(),
-        height: z.number(),
-      }),
-      animations: z.array(
-        z.object({
-          name: z.string(),
-          durationFrames: z.number(),
-          framesPerSecond: z.number(),
-          durationSeconds: z.number().nullable(),
-          workStart: z.number(),
-          workEnd: z.number(),
-          loopType: z.union([z.number(), z.string()]),
-        })
-      ),
-      stateMachines: z.array(
-        z.object({
-          name: z.string(),
-          inputs: z.array(
-            z.object({ name: z.string(), type: z.string() })
-          ),
-        })
-      ),
-    })
-  ),
+  artboards: z.array(artboardSchema),
 };
 
 const server = new McpServer(
   { name: "rive-vscode-mcp", version: extensionPackage.version },
-  { instructions: "Inspect Rive .riv files inside the configured project root." }
+  {
+    instructions:
+      "Inspect Rive .riv files inside the configured project root. Prefer a specific filePath; use summary=true or artboardName to reduce payload size on large files.",
+  }
 );
 
 server.registerTool(
@@ -206,9 +67,30 @@ server.registerTool(
   {
     title: "Inspect Rive file",
     description:
-      "Read metadata from a Rive .riv file: artboard names and dimensions, timeline animations with duration and frame rate, and state machines with input names and types. filePath must be relative to the configured project root.",
+      "Read metadata from a Rive .riv file: artboard names and dimensions, timeline animations with duration and frame rate, and state machines with input names and types. filePath must be relative to the configured project root. Optional: artboardName, includeAnimations, includeStateMachines, summary.",
     inputSchema: {
-      filePath: z.string().min(1).describe("Path to a .riv file, relative to the configured root or absolute within it."),
+      filePath: z
+        .string()
+        .min(1)
+        .describe("Path to a .riv file, relative to the configured root or absolute within it."),
+      artboardName: z
+        .string()
+        .optional()
+        .describe("When set, return only the artboard with this name."),
+      includeAnimations: z
+        .boolean()
+        .optional()
+        .describe("Include timeline animation metadata. Defaults to true."),
+      includeStateMachines: z
+        .boolean()
+        .optional()
+        .describe("Include state machines and inputs. Defaults to true."),
+      summary: z
+        .boolean()
+        .optional()
+        .describe(
+          "When true, return compact artboard rows with animationCount and stateMachineCount only."
+        ),
     },
     outputSchema: resultSchema,
     annotations: {
@@ -217,11 +99,22 @@ server.registerTool(
       openWorldHint: false,
     },
   },
-  async ({ filePath }) => {
+  async ({
+    filePath,
+    artboardName,
+    includeAnimations,
+    includeStateMachines,
+    summary,
+  }) => {
     try {
-      const result = await inspectRiveFile(filePath);
+      const result = await inspectRiveFile(filePath, {
+        artboardName,
+        includeAnimations,
+        includeStateMachines,
+        summary,
+      });
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: formatToolTextSummary(result) }],
         structuredContent: result,
       };
     } catch (error) {
@@ -265,5 +158,6 @@ if (setupRequested) {
   }
   console.log("Restart the configured editors to load the Rive MCP server.");
 } else {
+  await getRuntime();
   await server.connect(transport);
 }
